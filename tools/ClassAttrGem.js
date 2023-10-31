@@ -12,23 +12,24 @@ var data, className, parent;
 var classMap = {};
 
 var typeMap = {
-    'Number' : 'number',
-    'Boolean' : 'boolean',
-    'String' : 'string',
-    'cc.Color' : 'color',
-    'cc.Texture2D' : 'image',
-    'cc.Point' : 'point',
-    'cc.Size' : 'size',
+    'Number': 'number',
+    'Boolean': 'boolean',
+    'String': 'string',
+    'cc.Color': 'color',
+    'cc.Texture2D': 'image',
+    'cc.Point': 'point',
+    'cc.Size': 'size',
 };
 //fiter all meta data
-for (var i = 0; i < total; i++) {
+for (var i = 0; i < total; i++)
+{
     data = meta[i];
     if (data['longname'] == '' || data['kind'] != 'class') continue;
 
     className = data['longname'];
     parent = '';
     if (data['augments'] != undefined) parent = data['augments'][0];
-    
+
     family[className] = parent;
 
     classMap[className] = data;
@@ -44,9 +45,11 @@ fs.writeFileSync('family.js', require('util').inspect(family));
 //find all child of cc.Node
 var inherit = {};
 var parents;
-for(var className in family) {
+for (var className in family)
+{
     parents = getAllParent(family, className);
-    if (contains(parents, rootClass)) {
+    if (contains(parents, rootClass))
+    {
         inherit[className] = parents;
     }
 }
@@ -54,7 +57,8 @@ for(var className in family) {
 //get every class properties
 var classAttr = {};
 var shortName;
-for(var className in inherit) {
+for (var className in inherit)
+{
     shortName = classMap[className]['name'];
     classAttr[shortName] = getAllProperties(classMap, inherit, className);
 }
@@ -70,7 +74,8 @@ function getChildClass(family, className) {
     if (family[className] == undefined) return [];
     var children = family[className];
     var ret = {};
-    for(var i = 0; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++)
+    {
         ret[children[i]] = getChildClass(family, children[i]);
     }
     return ret;
@@ -86,14 +91,16 @@ function getAllParent(family, className) {
 }
 
 function contains(array, target) {
-    for(var i = 0; i < array.length; i++) {
+    for (var i = 0; i < array.length; i++)
+    {
         if (array[i] === target) return true;
     }
     return false;
 }
 
 function mergeObject(obj1, obj2) {
-    for(var key in obj2) {
+    for (var key in obj2)
+    {
         obj1[key] = obj2[key];
     }
     return obj1;
@@ -109,7 +116,8 @@ function getProperties(classMap, className) {
     var ret = {};
 
     var property, type;
-    for(var i = 0; i < properties.length; i++) {
+    for (var i = 0; i < properties.length; i++)
+    {
         property = properties[i];
         type = property['type']['names'][0];
         name = property['name'];
@@ -121,11 +129,13 @@ function getProperties(classMap, className) {
             type: type,
             value: property['defaultvalue']
         }
-        if (/^<@readonly>/.test(property['description'])) {
+        if (/^<@readonly>/.test(property['description']))
+        {
             ret[name]['readonly'] = true;
         }
 
-        if (ret[name]['value'] === null) {
+        if (ret[name]['value'] === null)
+        {
             if (type === 'Number') ret[name]['value'] = 0;
             if (type === 'Boolean') ret[name]['value'] = false;
             if (type === 'String') ret[name]['value'] = '';
@@ -143,7 +153,8 @@ function getAllProperties(classMap, inherit, className) {
     var parents = inherit[className];
     var all = getProperties(classMap, className);
     var properties;
-    for(var i = 0; i < parents.length; i++) {
+    for (var i = 0; i < parents.length; i++)
+    {
         properties = getProperties(classMap, parents[i]);
         all = mergeObject(all, properties);
     }

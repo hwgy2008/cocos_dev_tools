@@ -1,13 +1,18 @@
-(function(global, factory) {
-    if (typeof exports === "object" && exports) {
+(function (global, factory) {
+    if (typeof exports === "object" && exports)
+    {
         factory(exports); // CommonJS
-    } else if (typeof define === "function" && define.amd) {
+    }
+    else if (typeof define === "function" && define.amd)
+    {
         define(['exports'], factory); // AMD
-    } else {
+    }
+    else
+    {
         global['InspectElement'] = factory({}); // <script>
     }
-}(this, function(exports) {
-    var InspectElement = function() {
+}(this, function (exports) {
+    var InspectElement = function () {
         'use strict';
         var me = this;
         var scene, scene_data = [],
@@ -22,13 +27,15 @@
         function get_selected() {
             return scenedraw_nodes.selected_node;
         }
+
         me.get_selected = get_selected;
 
         // to public
         // me.scene_data = scene_data, me.scene_hash = scene_hash;
 
         function set_attr(to, from, name, type, readonly, value, desc) {
-            try {
+            try
+            {
                 if (name == 'glServerState') return;
                 if (type == 'point') return;
                 if (type == 'size') return;
@@ -40,18 +47,34 @@
                     desc: desc || name
                 };
 
-                if (type == 'image') {
-                    from[name] && from[name].url && (to[name].value = base_url + '/' + cc.loader.resPath + '/' + from[name].url);
-                } else if (type == 'color') {
+                if (type == 'image')
+                {
+                    if (from instanceof ccui.ImageView)
+                    {
+                        if (from._textureFile)
+                        {
+                            to[name].value = base_url + '/' + cc.loader.resPath + '/' + from._textureFile;
+                        }
+                    }
+                    else
+                    {
+                        from[name] && from[name].url && (to[name].value = base_url + '/' + cc.loader.resPath + '/' + from[name].url);
+                    }
+                }
+                else if (type == 'color')
+                {
                     var value = from[name];
                     var r = 255,
                         g = 255,
                         b = 255,
                         a = 255;
                     // 为兼容cocos2d某个版本的webgl下,color,无rgb属性的bug
-                    if (value.r) { // 正常的color能取到rgb
+                    if (value.r)
+                    { // 正常的color能取到rgb
                         r = (value.r || value.red), g = (value.g || value.green), b = (value.b || value.blue);
-                    } else if (value._aU8) { // 非正常的color
+                    }
+                    else if (value._aU8)
+                    { // 非正常的color
                         r = value._rU8[0], g = value._gU8[0], b = value._bU8[0];
                     }
                     to[name].value = {
@@ -60,10 +83,14 @@
                         b: b,
                         a: a
                     };
-                } else {
+                }
+                else
+                {
                     to[name].value = from[name];
                 }
-            } catch (e) {}
+            } catch (e)
+            {
+            }
         }
 
         function get_base_url() {
@@ -97,12 +124,95 @@
             };
             set_attr(data.attr, node, '__instanceId', 'string', true);
 
+            // BaseComponent
+            if (node.bcmpt)
+            {
+                if (node.bcmpt instanceof ed.baseScene)
+                {
+                    data.attr["baseScene"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: "true",
+                        desc: "is baseScene"
+                    };
+                }
+
+                if (node.bcmpt instanceof ed.dialogComponent)
+                {
+                    data.attr["dialogComponent"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: "true",
+                        desc: "is dialogComponent"
+                    };
+                }
+
+                data.attr["baseComponent"] = {
+                    type: 'string',
+                    readonly: true,
+                    value: "true",
+                    desc: "is baseComponent"
+                };
+
+                if (node.bcmpt.ui_editor && node.bcmpt.ui_editor.uiName)
+                {
+                    data.attr["csbName"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: node.bcmpt.ui_editor.uiName,
+                        desc: "csbName"
+                    };
+                }
+            }
+
+            if (node instanceof ed.FcaActor)
+            {
+                data.attr["FcaActor"] = {
+                    type: 'string',
+                    readonly: true,
+                    value: node.fca_name,
+                    desc: "FcaActor"
+                };
+
+                if (node instanceof ed.FcaEffect)
+                {
+                    data.attr["FcaEffect"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: node.sEffectName,
+                        desc: "FcaEffect"
+                    };
+                }
+            }
+
+            if (node instanceof ed.SpineActor)
+            {
+                data.attr["SpineActor"] = {
+                    type: 'string',
+                    readonly: true,
+                    value: "true",
+                    desc: "SpineActor"
+                };
+
+                if (node instanceof ed.SpineEffect)
+                {
+                    data.attr["SpineEffect"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: "true",
+                        desc: "SpineEffect"
+                    };
+                }
+            }
+
             var attr_hash = InspectElementConfig[node._className] || {};
-            for (var attr_name in attr_hash) {
+            for (var attr_name in attr_hash)
+            {
                 set_attr(data.attr, node, attr_name, attr_hash[attr_name].type, attr_hash[attr_name].readonly, attr_hash[attr_name].value, attr_hash[attr_name].desc);
             }
 
-            if (node.getChildren().length > 0) {
+            if (node.getChildren().length > 0)
+            {
                 // add a place-holder,and tell someone "i have a child"
                 data.nodes = [];
                 data.nodes.length = node.getChildren().length;
@@ -117,13 +227,17 @@
             //data.name = node.constructor.name || null;
 
             // find var name form parent
-            for (var i in parent) {
-                try {
-                    if (parent[i] && parent[i].__instanceId && parent[i].__instanceId == node.__instanceId) {
+            for (var i in parent)
+            {
+                try
+                {
+                    if (parent[i] && parent[i].__instanceId && parent[i].__instanceId == node.__instanceId)
+                    {
                         data.name = i;
                         break;
                     }
-                } catch (e) {
+                } catch (e)
+                {
                     continue
                 }
             }
@@ -154,10 +268,13 @@
         function get_node_children(node, fn) {
             var tree_children = [];
             // get root
-            if (node == null) {
-                try {
+            if (node == null)
+            {
+                try
+                {
                     tree_children = cc.director.getRunningScene().getChildren();
-                } catch (e) {
+                } catch (e)
+                {
                     console.log('error', e, tree_children);
                     return [];
                 }
@@ -165,10 +282,14 @@
             // get node's children
             if (node instanceof cc.Node) tree_children = node.getChildren();
             // get by id
-            if (typeof node == 'number' || typeof node == 'string') {
-                if (scene_hash[node]) {
+            if (typeof node == 'number' || typeof node == 'string')
+            {
+                if (scene_hash[node])
+                {
                     tree_children = scene_hash[node].getChildren() || [];
-                } else {
+                }
+                else
+                {
                     return [];
                 }
             }
@@ -176,8 +297,10 @@
             if (tree_children.length == 0) return [];
 
             var a, d, node, tree_data = [];
-            for (var i = 0, j = tree_children.length; i < j; i++) {
-                if (tree_children[i].getTag() != SCENEDRAW_NAME) {
+            for (var i = 0, j = tree_children.length; i < j; i++)
+            {
+                if (tree_children[i].getTag() != SCENEDRAW_NAME)
+                {
                     a = serialize_item_data(tree_children[i]),
                         d = a.data,
                         node = a.node;
@@ -198,24 +321,32 @@
                 }
             }
 
-            if (!scenedraw) {
+            if (!scenedraw)
+            {
                 create_scenedraw(cc.director.getRunningScene());
             }
 
             fn && fn(tree_data);
             return tree_data;
         }
+
         me.get_node_children = get_node_children;
 
         function get_hierarchy(sc) {
-            if (!sc) {
-                if (cc.director) {
+            if (!sc)
+            {
+                if (cc.director)
+                {
                     scene = cc.director.getRunningScene();
-                } else {
+                }
+                else
+                {
                     console.log("please wait for the engine power on");
                     return;
                 }
-            } else {
+            }
+            else
+            {
                 scene = sc;
             }
 
@@ -224,37 +355,45 @@
 
             function find(tree_children, tree_data) {
                 var a, d, node;
-                for (var i = 0, j = tree_children.length; i < j; i++) {
+                for (var i = 0, j = tree_children.length; i < j; i++)
+                {
                     a = serialize_item_data(tree_children[i]),
                         d = a.data,
                         node = a.node;
 
-                    if (node.getChildren().length > 0) {
+                    if (node.getChildren().length > 0)
+                    {
                         d.nodes = [];
                         tree_data.push(d);
                         find(node.getChildren && node.getChildren(), d.nodes);
-                    } else {
+                    }
+                    else
+                    {
                         tree_data.push(d);
                     }
                     // get hash
                     scene_hash[node.__instanceId] = node;
                 }
             }
+
             // reset scene_data
             scene_data = [], scene_hash = {};
             find(sceneChildren, scene_data);
 
             // is added ?
-            if (!scenedraw) {
+            if (!scenedraw)
+            {
                 create_scenedraw(scene);
             }
             return scene_data;
         }
+
         me.get_hierarchy = get_hierarchy;
 
 
         function begin_inspect(sc) {
-            try {
+            try
+            {
                 if (document.getElementById('cocos2d_inspect_layer')) return;
                 var pos = {
                         x: 0,
@@ -265,7 +404,8 @@
                 function find(tree_children) {
                     var node, result = null,
                         box;
-                    for (var i = tree_children.length - 1; i >= 0; i--) {
+                    for (var i = tree_children.length - 1; i >= 0; i--)
+                    {
                         node = tree_children[i];
                         box = node.getBoundingBoxToWorld();
 
@@ -275,15 +415,18 @@
                             pos.y >= box.y &&
                             pos.x <= box.x + box.width &&
                             pos.y <= box.y + box.height
-                        ) {
+                        )
+                        {
                             result = node;
                             break;
                         }
                     }
-                    if (result != null) {
+                    if (result != null)
+                    {
                         if (result.getLocalZOrder() < 0) return result;
 
-                        if (result.getChildren().length > 0) {
+                        if (result.getChildren().length > 0)
+                        {
                             var r = find(result.getChildren());
                             if (r != null) return r;
                         }
@@ -294,11 +437,13 @@
                 function find_fullpath(node) {
                     var path = [serialize_item_data(node).data]; // default is me
                     function f(n) {
-                        if (n && n.getParent && n.getParent() != null && !(n.getParent() instanceof cc.Scene)) {
+                        if (n && n.getParent && n.getParent() != null && !(n.getParent() instanceof cc.Scene))
+                        {
                             path.push(serialize_item_data(n.getParent()).data);
                             f(n.getParent());
                         }
                     }
+
                     f(node);
                     return path.reverse(); // the order is [root, ... grandpa, papa, me]
                 }
@@ -349,7 +494,7 @@
                 cc.container.style.outline = 'rgba(51,128,224,.5) solid 2px';
                 cc.container.style.boxShadow = '0px 0px 20px 10px rgba(51,128,224,.5)';
 
-                el.onmousemove = function(e) {
+                el.onmousemove = function (e) {
                     //console.log(e.x - cc.container.offsetLeft, e.y - cc.container.offsetTop);
                     var layerX = (e.layerX == null) ? (e.x - cc.container.offsetLeft + window.scrollX) : e.layerX,
                         layerY = (e.layerY == null) ? (e.y - cc.container.offsetTop + window.scrollY) : e.layerY;
@@ -362,14 +507,14 @@
                     inspect_node = find(cc.director.getRunningScene().getChildren());
                     draw_rect(inspect_node, scenedraw_nodes.selected_node);
                 };
-                el.onclick = function(e) {
+                el.onclick = function (e) {
                     end_inspect();
                     me.on_inspect_node && me.on_inspect_node(
                         serialize_item_data(inspect_node).data, // current node
                         find_fullpath(inspect_node) // find full path
                     );
                 };
-                el.onblurclick = function(e) {
+                el.onblurclick = function (e) {
                     if (e.target.name == 'btn-insp') return;
                     if (e.target.id == 'cocos2d_inspect_layer') return;
                     end_inspect();
@@ -377,14 +522,17 @@
                 cc.container.appendChild(el);
                 document.body.addEventListener('click', el.onblurclick);
 
-            } catch (e) {
+            } catch (e)
+            {
                 console.log(e)
             }
         }
+
         me.begin_inspect = begin_inspect;
 
         function end_inspect() {
-            try {
+            try
+            {
                 var el = document.getElementById('cocos2d_inspect_layer');
                 document.body.removeEventListener('click', el.onblurclick);
                 el.onmousemove = el.onclick = el.onblurclick = null;
@@ -393,15 +541,21 @@
                 cc.container.removeChild(el);
                 el = null;
 
-            } catch (e) {
+            } catch (e)
+            {
                 console.log(e)
             }
         }
+
         me.end_inspect = end_inspect;
 
         function create_scenedraw(sc) {
+            if (!sc) // 有可能报错
+                return;
+
             var last_scenedraw = sc.getChildByTag(SCENEDRAW_NAME);
-            if (last_scenedraw) {
+            if (last_scenedraw)
+            {
                 //scenedraw = last_scenedraw;
                 //clear_rect();
                 //return;
@@ -420,6 +574,7 @@
         function clear_rect() {
             scenedraw && scenedraw.clear && scenedraw.clear()
         }
+
         me.clear_rect = clear_rect;
 
         function draw_rect(node, selected_node) {
@@ -430,13 +585,15 @@
             scenedraw_nodes.node = node;
             scenedraw_nodes.selected_node = selected_node;
 
-            if (node instanceof cc.Node && scenedraw) {
+            if (node instanceof cc.Node && scenedraw)
+            {
                 box = node.getBoundingBoxToWorld();
                 left = box.x, top = box.y, right = box.x + (box.width || 2), bottom = box.y + (box.height || 2);
                 scenedraw.drawRect(cc.p(left, top), cc.p(right, bottom), cc.color(102, 170, 238, 60), 2, cc.color(102, 170, 238, 255));
             }
             //console.log('selected_node', selected_node, scene_hash[selected_node], selected_node instanceof cc.Node && scenedraw)
-            if (selected_node instanceof cc.Node && scenedraw) {
+            if (selected_node instanceof cc.Node && scenedraw)
+            {
                 box = selected_node.getBoundingBoxToWorld();
                 left = box.x, top = box.y, right = box.x + (box.width || 2), bottom = box.y + (box.height || 2);
                 // cc.color(0,0,0,1) 这地方很诡异，如果alpha设置成0，在某些场景下会画出黑色实心矩形
@@ -444,16 +601,19 @@
                 scenedraw.drawRect(cc.p(left, top), cc.p(right, bottom), cc.color(0, 0, 0, 1), 2, cc.color(238, 204, 102, 240));
             }
         }
+
         me.draw_rect = draw_rect;
 
         function modify_node(node, attr) {
             if (typeof node == 'number' || typeof node == 'string') node = scene_hash[node];
-            if (node instanceof cc.Node) {
+            if (node instanceof cc.Node)
+            {
                 attr = attr || {};
                 // set common
                 for (var i in attr) node[i] = attr[i];
             }
         }
+
         me.modify_node = modify_node;
 
         function send_hierarchy(id) {
@@ -471,11 +631,12 @@
         var tk, tk_update, // ticker
             delay = 10, // interval delay is 10ms
             timeout = 0, // init value
-            timeout_max = 10 * 1000; // 10s
-        me.start = function() {
-            tk = setInterval(function() {
+            timeout_max = 120 * 1000; // 10s
+        me.start = function () {
+            tk = setInterval(function () {
                 timeout += delay;
-                if (timeout > timeout_max) {
+                if (timeout > timeout_max)
+                {
                     clearInterval(tk);
                     tk = null;
                     console.log('timeout: cocos2d engine is not be loaded.');
@@ -484,13 +645,15 @@
 
                 if (document && !document.getElementsByTagName('canvas').length) return; // no canvas
                 //alert(cc.director._runScene)
-                if (typeof cc != "object" || !cc.director) {
+                if (typeof cc != "object" || !cc.director)
+                {
                     //if (!cc || !cc.director){
                     return; // no cc
                 }
 
                 // is injected ?
-                if (cc.director._runScene) {
+                if (cc.director._runScene)
+                {
                     me.on_start && me.on_start();
                     clearInterval(tk);
                     return;
@@ -519,11 +682,11 @@
                 };
                 */
                 cc.director._runScene = cc.director.runScene;
-                cc.director.runScene = function(sc) {
+                cc.director.runScene = function (sc) {
                     cc.director._runScene(sc);
 
                     //hack code: delay 200ms wait for rendering on next frame.
-                    setTimeout(function() {
+                    setTimeout(function () {
 
                         //get_hierarchy(sc);
                         scene_data = [], scene_hash = {};
@@ -537,11 +700,11 @@
                 };
 
                 cc.director._pushScene = cc.director.pushScene;
-                cc.director.pushScene = function(sc) {
+                cc.director.pushScene = function (sc) {
                     cc.director._pushScene(sc);
 
                     //hack code: delay 200ms wait for rendering on next frame.
-                    setTimeout(function() {
+                    setTimeout(function () {
 
                         scene_data = [], scene_hash = {};
                         var tree_data = get_node_children(sc);
@@ -553,11 +716,11 @@
                 };
 
                 cc.director._popScene = cc.director.popScene;
-                cc.director.popScene = function() {
+                cc.director.popScene = function () {
                     cc.director._popScene();
 
                     //wait for animation
-                    setTimeout(function() {
+                    setTimeout(function () {
                         create_scenedraw(cc.director.getRunningScene());
                         me.on_start && me.on_start();
 
@@ -565,14 +728,15 @@
                 };
 
                 cc.Node.prototype._addChild = cc.Node.prototype.addChild;
-                cc.Node.prototype.addChild = function(child, localZOrder, tag) {
+                cc.Node.prototype.addChild = function (child, localZOrder, tag) {
                     cc.Node.prototype._addChild.apply(this, [child, localZOrder, tag]);
                     //try{
                     var a = serialize_item_data(child),
                         data = a.data,
                         node = a.node,
                         is_root = false;
-                    if (cc.director.getRunningScene() && cc.director.getRunningScene().__instanceId == data.parentId) {
+                    if (cc.director.getRunningScene() && cc.director.getRunningScene().__instanceId == data.parentId)
+                    {
                         is_root = true;
                     }
                     scene_hash[node.__instanceId] = node;
@@ -582,11 +746,12 @@
                 };
 
                 cc.Node.prototype._removeChild = cc.Node.prototype.removeChild;
-                cc.Node.prototype.removeChild = function(child, cleanup) {
+                cc.Node.prototype.removeChild = function (child, cleanup) {
                     var parent,
                         data = {},
                         is_root = false;
-                    try {
+                    try
+                    {
                         if (child == null || child.__instanceId == null) return;
 
                         scene_hash[child.__instanceId] = null;
@@ -596,16 +761,19 @@
                             id: child.__instanceId,
                             parentId: parent.__instanceId || null
                         };
-                        if (cc.director.getRunningScene() && cc.director.getRunningScene().__instanceId == data.parentId) {
+                        if (cc.director.getRunningScene() && cc.director.getRunningScene().__instanceId == data.parentId)
+                        {
                             is_root = true;
                         }
-                    } catch (e) {}
+                    } catch (e)
+                    {
+                    }
 
                     cc.Node.prototype._removeChild.apply(this, [child, cleanup]);
                     me.on_removeChild && me.on_removeChild(child, data, is_root);
                 };
 
-                tk_update = setInterval(function() {
+                tk_update = setInterval(function () {
                     draw_rect(scenedraw_nodes.node, scenedraw_nodes.selected_node)
                 }, 80);
 
@@ -614,7 +782,7 @@
             }, delay);
         };
 
-        me.end = function() {
+        me.end = function () {
             clearInterval(tk);
             clearInterval(tk_update);
         };
