@@ -631,7 +631,7 @@
         var tk, tk_update, // ticker
             delay = 10, // interval delay is 10ms
             timeout = 0, // init value
-            timeout_max = 120 * 1000; // 10s
+            timeout_max = 600 * 1000; // 10s
         me.start = function () {
             tk = setInterval(function () {
                 timeout += delay;

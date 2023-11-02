@@ -315,11 +315,12 @@
     var _cd = {};
     _this._cocos_devtools = _cd;
 
-    if (typeof window.cc == 'undefined')
-    {
-        document.getElementById('left').innerHTML = 'Cocos2d-js engine is not loaded.';
-        return;
-    }
+    // 暂时去掉判断，cocos初始化可能晚于插件
+    // if (typeof window.cc == 'undefined')
+    // {
+    //     document.getElementById('left').innerHTML = 'Cocos2d-js engine is not loaded.';
+    //     return;
+    // }
     // ui
     var tt, at, cf, sp, // ui
         ie, cfps, sph; // inject
