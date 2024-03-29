@@ -291,21 +291,27 @@
                     var isBaseScene = nd.attr["baseScene"] && nd.attr["baseScene"]["value"];
                     if (isBaseScene)
                     {
-                        realName = "[Scene] " + realName;
+                        var className = nd.attr["baseScene"]["realClassName"];
+                        var prefix = className ? "[" + className + "] ": "[Scene] ";
+                        realName = prefix + realName;
                     }
                     else
                     {
                         var isDialogComp = nd.attr["dialogComponent"] && nd.attr["dialogComponent"]["value"];
                         if (isDialogComp === "true")
                         {
-                            realName = "[DialogComp] " + realName;
+                            var className = nd.attr["dialogComponent"]["realClassName"];
+                            var prefix = className ? "[" + className + "] ": "[DialogComp] ";
+                            realName = prefix + realName;
                         }
                         else
                         {
                             var isBaseComp = nd.attr["baseComponent"] && nd.attr["baseComponent"]["value"];
                             if (isBaseComp === "true")
                             {
-                                realName = "[BaseComp] " + realName;
+                                var className = nd.attr["baseComponent"]["realClassName"];
+                                var prefix = className ? "[" + className + "] ": "[BaseComp] ";
+                                realName = prefix + realName;
                             }
                         }
                     }

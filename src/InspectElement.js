@@ -124,35 +124,47 @@
             };
             set_attr(data.attr, node, '__instanceId', 'string', true);
 
-            // BaseComponent
+            /**
+             * 继承自 BaseComponent 和 DialogComponent 的类支持显示具体类名
+             * js 没有反射，没有办法快速获取具体类名，所以需要在定义时，声明 _className 字段
+             * 比如 cocos 的 cc.Node 中也定义了 _className: "Node"，来区分类型
+             */
+            var realText = data.className || null;
             if (node.bcmpt)
             {
                 if (node.bcmpt instanceof ed.baseScene)
                 {
+                    realText = "Scene";
                     data.attr["baseScene"] = {
                         type: 'string',
                         readonly: true,
                         value: "true",
-                        desc: "is baseScene"
+                        desc: "is baseScene",
+                        realClassName: node.bcmpt._className,
                     };
                 }
-
-                if (node.bcmpt instanceof ed.dialogComponent)
+                else if (node.bcmpt instanceof ed.dialogComponent)
                 {
+                    realText = "DialogComp";
                     data.attr["dialogComponent"] = {
                         type: 'string',
                         readonly: true,
                         value: "true",
-                        desc: "is dialogComponent"
+                        desc: "is dialogComponent",
+                        realClassName: node.bcmpt._className,
                     };
                 }
-
-                data.attr["baseComponent"] = {
-                    type: 'string',
-                    readonly: true,
-                    value: "true",
-                    desc: "is baseComponent"
-                };
+                else
+                {
+                    realText = "BaseComp";
+                    data.attr["baseComponent"] = {
+                        type: 'string',
+                        readonly: true,
+                        value: "true",
+                        desc: "is baseComponent",
+                        realClassName: node.bcmpt._className,
+                    };
+                }
 
                 if (node.bcmpt.ui_editor && node.bcmpt.ui_editor.uiName)
                 {
@@ -238,7 +250,7 @@
                     }
                 } catch (e)
                 {
-                    continue
+                    continue;
                 }
             }
             // find var name form grandpa
@@ -254,7 +266,7 @@
             // }
             // }
 
-            data.text = node._className || null;
+            data.text = realText;
             return {
                 data: data,
                 node: node
